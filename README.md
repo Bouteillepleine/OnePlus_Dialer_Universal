@@ -1,5 +1,8 @@
 # OnePlus Dialer & Messages (Android 16)
 
+[![Build module](https://github.com/Bouteillepleine/OnePlus_Dialer_Universal/actions/workflows/build.yml/badge.svg)](https://github.com/Bouteillepleine/OnePlus_Dialer_Universal/actions/workflows/build.yml)
+[![Latest release](https://img.shields.io/github/v/release/Bouteillepleine/OnePlus_Dialer_Universal)](https://github.com/Bouteillepleine/OnePlus_Dialer_Universal/releases/latest)
+
 A KernelSU / Magisk module that re-enables the **OnePlus Phone (Contacts), Dialer (InCallUI) and Messages (Mms)** apps — with **call recording** — on OxygenOS 16 builds where the region firmware ships them disabled.
 
 Tested on the **OnePlus 15 (CPH2747)**, OxygenOS 16 (Android 16). Should work on other OnePlus / OPPO / Realme devices that use the same `my_stock` / `my_region` app-platform layout.

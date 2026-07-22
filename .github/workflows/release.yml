@@ -1,0 +1,64 @@
+name: Auto release
+
+# When module.prop's version changes on main, cut a tagged release and
+# attach the freshly-built flashable zip. Uses the built-in GITHUB_TOKEN
+# (contents: write) — gh release create makes the tag + release + asset in
+# one shot, so no PAT is needed. Skips if a release for that version exists.
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'module.prop' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version
+        id: meta
+        run: |
+          ver=$(grep -m1 '^version=' module.prop | cut -d= -f2- | tr -d '\r')
+          [ -n "$ver" ] || { echo "::error::no version in module.prop"; exit 1; }
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "zip=OnePlus_Dialer_${ver}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if release already exists
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.meta.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true"  >> "$GITHUB_OUTPUT"
+            echo "Release ${{ steps.meta.outputs.version }} already exists — skipping."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Package flashable zip
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          set -e
+          mkdir -p dist
+          zip -r9 -X "dist/${{ steps.meta.outputs.zip }}" \
+            module.prop \
+            customize.sh action.sh post-fs-data.sh system.prop uninstall.sh \
+            config \
+            META-INF \
+            system
+
+      - name: Create release
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.meta.outputs.version }}" \
+            "dist/${{ steps.meta.outputs.zip }}" \
+            --title "${{ steps.meta.outputs.version }}" \
+            --generate-notes
