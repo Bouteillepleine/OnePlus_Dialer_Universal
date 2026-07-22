@@ -1,0 +1,89 @@
+name: Build module
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read module metadata
+        id: meta
+        run: |
+          ver=$(grep -m1 '^version='     module.prop | cut -d= -f2- | tr -d '\r')
+          code=$(grep -m1 '^versionCode=' module.prop | cut -d= -f2- | tr -d '\r')
+          id=$(grep -m1 '^id='           module.prop | cut -d= -f2- | tr -d '\r')
+          echo "id=$id"        >> "$GITHUB_OUTPUT"
+          echo "version=$ver"  >> "$GITHUB_OUTPUT"
+          echo "code=$code"    >> "$GITHUB_OUTPUT"
+          echo "zip=OnePlus_Dialer_${ver}.zip" >> "$GITHUB_OUTPUT"
+          echo "Building $id $ver (versionCode $code)"
+
+      - name: Validate module
+        run: |
+          set -e
+          # Required files must exist
+          for f in module.prop customize.sh post-fs-data.sh \
+                   META-INF/com/google/android/update-binary \
+                   META-INF/com/google/android/updater-script; do
+            [ -f "$f" ] || { echo "::error::missing required file: $f"; exit 1; }
+          done
+          # Shell scripts / installer must be LF (CR breaks them on Android)
+          bad=0
+          while IFS= read -r s; do
+            if grep -lU $'\r' "$s" >/dev/null 2>&1; then
+              echo "::error::CRLF line endings in $s"; bad=1
+            fi
+          done < <(git ls-files '*.sh' 'META-INF/com/google/android/update-binary' 'META-INF/com/google/android/updater-script')
+          [ "$bad" = 0 ] || exit 1
+          # versionCode must be an integer
+          case "${{ steps.meta.outputs.code }}" in
+            ''|*[!0-9]*) echo "::error::versionCode is not numeric"; exit 1;;
+          esac
+          echo "Validation passed."
+
+      - name: Package flashable zip
+        run: |
+          set -e
+          mkdir -p dist
+          # Only the actual module components go in the flashable zip —
+          # never README/CHANGELOG/LICENSE/update.json/.git*/.github.
+          zip -r9 -X "dist/${{ steps.meta.outputs.zip }}" \
+            module.prop \
+            customize.sh action.sh post-fs-data.sh system.prop uninstall.sh \
+            config \
+            META-INF \
+            system
+          echo "=== zip contents ==="
+          unzip -l "dist/${{ steps.meta.outputs.zip }}"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.id }}-${{ steps.meta.outputs.version }}
+          path: dist/*.zip
+          if-no-files-found: error
+
+      - name: Attach to release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          tag="${GITHUB_REF_NAME}"
+          asset="dist/${{ steps.meta.outputs.zip }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$asset" --clobber
+          else
+            gh release create "$tag" "$asset" --title "$tag" --generate-notes
+          fi
