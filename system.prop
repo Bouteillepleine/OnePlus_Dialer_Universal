@@ -1,0 +1,3 @@
+# Disable the "safe media volume" warning so recorded-call playback
+# is not capped.
+audio.safemedia.bypass=true

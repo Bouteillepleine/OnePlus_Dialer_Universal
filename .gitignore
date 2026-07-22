@@ -1,0 +1,7 @@
+# Built flashable zips are attached to GitHub Releases, not committed.
+*.zip
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini

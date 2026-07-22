@@ -1,0 +1,12 @@
+# Module scripts must stay LF or they won't run on Android.
+*.sh            text eol=lf
+update-binary   text eol=lf
+updater-script  text eol=lf
+module.prop     text eol=lf
+system.prop     text eol=lf
+*.xml           text eol=lf
+*.json          text eol=lf
+*.md            text eol=lf
+
+# Binaries
+*.apk           binary
