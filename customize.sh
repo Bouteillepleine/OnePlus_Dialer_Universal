@@ -1,13 +1,15 @@
 SKIPMOUNT=false
 PROPFILE=true
 POSTFSDATA=true
-# No service.sh is shipped, so LATESTARTSERVICE is intentionally disabled.
-LATESTARTSERVICE=false
+# service.sh installs the InCallUI variant to /data at late-start.
+LATESTARTSERVICE=true
 
 ui_print " "
 ui_print "  OnePlus Phone, Dialer & Messages (Android 16)"
 ui_print "  - Enables the ROM's built-in Phone/Contacts"
-ui_print "  - InCallUI + Messages, with call recording"
+ui_print "  - Installs InCallUI (Notes) + Messages, with call recording"
+ui_print " "
+ui_print "  Note: InCallUI installs on first boot (give it a minute)."
 ui_print " "
 
 # --- Sanity checks -----------------------------------------------------------

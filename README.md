@@ -17,10 +17,12 @@ This module:
 
 1. **Re-enables the built-in apps** by reading the real `app_v2.xml` at boot and surgically stripping only the three `<disable>` lines for `com.android.contacts`, `com.android.incallui` and `com.android.mms` — every other stock entry is preserved. Done dynamically across `my_stock`, `my_region`, `my_product`, `my_carrier`, `my_heytap`, `my_preload`, `my_bigball`, so it stays correct across regions and firmware versions.
 2. **Enables call recording** by stripping the recording-restriction flags (`no_display_record`, `not_support_record`, `support_record_prompt`, `disable_ted_function`) from the vendor extension configs and bind-mounting the result back.
-3. **Ships InCallUI + Mms** as system priv-apps for firmwares that don't already include them, with the matching `privapp-permissions-oplus.xml` and `package-shareduid-allowlist.xml` (InCallUI joins `android.uid.phone`).
+3. **Ships Messages (`com.android.mms`)** as a system priv-app with the matching `privapp-permissions-oplus.xml` — this ROM ships Google Messages, not `com.android.mms`, so it has no factory copy to enable.
 4. Applies the OPlus media-controller and auto-recording preference configs, and disables the safe-media-volume cap.
 
-> **Note:** the module does **not** ship a Contacts APK. The ROM's own factory Contacts is the correct, firmware-matched build — the module only un-disables it. (Shipping a mismatched Contacts copy is what caused the crash fixed in v1.4.)
+The module also bundles the OnePlus **InCallUI 16.21.0 variant** (which adds the **Notes/Remarques** call feature) and installs it to `/data` on first boot via `service.sh` — this variant crashes when mounted as a `/system` priv-app (`GraphicsEnvironment` null-Resources at bind), so a data install is the only way it runs. If the install doesn't happen, the ROM's factory `com.android.incallui` 16.21.0 stays active (call recording + voicemail tab both work either way).
+
+> **Note:** the module does **not** ship a Contacts APK. The ROM's own factory `com.android.contacts` (16.80.0) is the correct, firmware-matched build — the module only un-disables it via the `app_v2` strip. (Shipping an older `/data/app`-sourced Contacts is what caused the crash fixed in v1.4.)
 
 All bind mounts are registered with **SuSFS** (`add_sus_mount` / `add_try_umount`) and KernelSU `ksud kernel umount` so the overlay is hidden.
 
