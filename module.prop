@@ -1,7 +1,7 @@
 id=OnePlus_Dialer_Universal
 name=OnePlus Dialer & Messages (Android 16)
-version=v1.5
-versionCode=308
+version=v1.5.1
+versionCode=309
 author=YxxX
 description=Enables OnePlus Phone, Dialer & Messages with call recording.
 updateJson=https://raw.githubusercontent.com/Bouteillepleine/OnePlus_Dialer_Universal/main/update.json

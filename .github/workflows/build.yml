@@ -60,8 +60,8 @@ jobs:
           # never README/CHANGELOG/LICENSE/update.json/.git*/.github.
           zip -r9 -X "dist/${{ steps.meta.outputs.zip }}" \
             module.prop \
-            customize.sh action.sh post-fs-data.sh service.sh system.prop uninstall.sh \
-            config incallui \
+            customize.sh action.sh post-fs-data.sh system.prop uninstall.sh \
+            config \
             META-INF \
             system
           echo "=== zip contents ==="
