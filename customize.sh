@@ -5,9 +5,9 @@ POSTFSDATA=true
 LATESTARTSERVICE=false
 
 ui_print " "
-ui_print "  OnePlus Phone, Dialer & Messages (Android 16)"
-ui_print "  - Enables the ROM's built-in Phone/Contacts + InCallUI"
-ui_print "  - Ships Messages (com.android.mms), with call recording"
+ui_print "  OnePlus Phone, Contacts & Messages (Android 16)"
+ui_print "  - Full-feature Phone/Contacts, InCallUI & Messages"
+ui_print "  - Overlaid onto /product, with call recording"
 ui_print " "
 
 # --- Sanity checks -----------------------------------------------------------

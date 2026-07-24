@@ -17,12 +17,12 @@ This module:
 
 1. **Re-enables the built-in apps** by reading the real `app_v2.xml` at boot and surgically stripping only the three `<disable>` lines for `com.android.contacts`, `com.android.incallui` and `com.android.mms` — every other stock entry is preserved. Done dynamically across `my_stock`, `my_region`, `my_product`, `my_carrier`, `my_heytap`, `my_preload`, `my_bigball`, so it stays correct across regions and firmware versions.
 2. **Enables call recording** by stripping the recording-restriction flags (`no_display_record`, `not_support_record`, `support_record_prompt`, `disable_ted_function`) from the vendor extension configs and bind-mounting the result back.
-3. **Ships Messages (`com.android.mms`)** as a system priv-app with the matching `privapp-permissions-oplus.xml` — this ROM ships Google Messages, not `com.android.mms`, so it has no factory copy to enable.
+3. **Overlays the full-feature Phone/Contacts, InCallUI and Messages** onto their `/product/priv-app` locations (in-place), with the matching privapp-permission files. Overlaying in place keeps a single codePath so the apps stay privileged and don't hit the `GraphicsEnvironment` null-Resources crash that a second `/system` copy triggers, and it's a SuSFS-hideable mount (no detector-visible `/data` install).
 4. Applies the OPlus media-controller and auto-recording preference configs, and disables the safe-media-volume cap.
 
-The dialer's in-call screen is the ROM's factory **`com.android.incallui` 16.21.0** (enabled by the `app_v2` strip) — it has call recording and the **Messagerie vocale** (voicemail) tab, and it's detection-clean. A repackaged InCallUI variant that adds "Notes/Remarques" exists, but it only runs as a `/data` install (crashes mounted in `/system`), which root/integrity detectors flag — so it is intentionally **not** bundled.
+**Native libs:** the Contacts/InCallUI builds use `extractNativeLibs=false` (libs mmap'd from inside the APK, no `lib/` dir needed); Messages (16.60.10) uses `extractNativeLibs=true`, so its 25 `.so` are shipped extracted in `lib/arm64/`.
 
-> **Note:** the module does **not** ship Contacts or InCallUI APKs. The ROM's own factory `com.android.contacts` (16.80.0) is the correct, firmware-matched build — the module only un-disables it via the `app_v2` strip. (Shipping an older `/data/app`-sourced Contacts is what caused the crash fixed in v1.4.)
+The **Notes/Remarques** tab needs the genuine **`com.oneplus.note`** app installed (not the look-alike `com.coloros.note`); it is a separate install, not bundled here.
 
 All bind mounts are registered with **SuSFS** (`add_sus_mount` / `add_try_umount`) and KernelSU `ksud kernel umount` so the overlay is hidden.
 
