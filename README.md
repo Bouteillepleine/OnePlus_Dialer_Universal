@@ -36,6 +36,15 @@ All bind mounts are registered with **SuSFS** (`add_sus_mount` / `add_try_umount
 
 Requires root (KernelSU recommended; Magisk works). SuSFS is optional — the module degrades gracefully without it.
 
+### Alternative: install the APKs manually
+
+The bundled APKs (`system/product/priv-app/*/*.apk`) are self-contained and can also just be **sideloaded to `/data`** instead of flashing the module — e.g. via a package installer, `adb install -r <apk>`, or App Manager. Notes:
+
+- All are **Oplus platform-signed**, so they install cleanly over the ROM's copies (same signature).
+- You still need the module (or a manual `app_v2.xml` edit) to **un-disable** `com.android.contacts` / `incallui` / `mms` and to enable **call recording** — the APKs alone don't do that.
+- A `/data` install is **visible to root/integrity detectors** (Holmes etc.), whereas the module's `/product` overlay is SuSFS-hideable. If you run an auto-updater (APKUpdater/App Manager auto-install), it tends to install these to `/data` anyway and will shadow the module overlay.
+- The **Notes/Remarques** tab needs the genuine **`com.oneplus.note`** app installed alongside (it is not bundled in this module).
+
 ---
 
 ## The Action button
