@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.6.2
+- **Detection fix: `/my_*` overrides are no longer bind-mounted.** Previous versions bind-mounted the stripped call-recording configs and `app_v2.xml` from `post-fs-data.sh`; those binds have a `/adb/modules/...` source that Duck Detector / Reveny NativeCheck flag as a root-managed mount token (and SUSFS hiding is a no-op on a NoMount, SUSFS-free kernel). The stripped configs are now **staged into the module's own partition tree at install** (`customize.sh`) so the active mounter serves them: **hooklessly under the NoMount Suite — zero mounts, nothing for a mount scanner to see**. On NoMount, `customize.sh` also enables hookless `/my_*` (`/data/adb/nomount/my_hookless`).
+- `post-fs-data.sh` now **no-ops under NoMount** (the metamodule mount pass serves the tree); the old bind-mount + SUSFS/umount hide is kept only as a **fallback for non-NoMount (Magisk/magic-mount)** setups, binding from the staged tree.
+- Generation is done at install so it adapts to the device's region/firmware — re-run the **Action** button (or reinstall) after a firmware OTA to regenerate.
+
 ## v1.6.1
 - `customize.sh` now **detects the partition InCallUI lives on** (via `pm path`, falling back to a priv-app dir scan) and relocates the shipped `/product` overlay to match — so the in-place overlay lands correctly on models where the dialer apps sit on `/system_ext`, `/my_stock`, etc. instead of `/product`.
 
