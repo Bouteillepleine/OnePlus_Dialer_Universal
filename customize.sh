@@ -49,53 +49,12 @@ if [ "$PART" != "product" ] && [ -d "$MODPATH/system/product" ]; then
 fi
 
 # --- Stage /my_* overrides INTO this module's tree (served by the mounter) ----
-# Earlier versions bind-mounted these at boot from post-fs-data.sh. A bind whose
-# source is /adb/modules/... is a "root-managed mount token" that Duck Detector /
-# NativeCheck flag. Instead we now STAGE the stripped configs into this module's
-# own partition tree, so the active mounter serves them — HOOKLESSLY under the
-# NoMount Suite (zero mounts, nothing for a mount scanner to see), or magic-mount
-# elsewhere (fallback bind lives in post-fs-data.sh). Generated here at install so
-# it adapts to THIS device's region/firmware; re-run the module's Action button
-# (or reinstall) after a firmware OTA to regenerate.
-stage_count=0
-
-# Call recording — OPlus gates it via flags in vendor extension configs. Copy each
-# config that carries a blocking flag into the tree at the same path and strip it.
-for base in my_product my_region my_bigball; do
-  dir="/$base/etc/extension"
-  [ -d "$dir" ] || continue
-  for src in $(grep -rl -e 'no_display_record' -e 'support_record_prompt' \
-                        -e 'not_support_record' -e 'disable_ted_function' "$dir" 2>/dev/null); do
-    dst="$MODPATH$src"
-    mkdir -p "$(dirname "$dst")" || continue
-    if sed -e '/no_display_record/d; /not_support_record/d; /support_record_prompt/d; /disable_ted_function/d' \
-           "$src" > "$dst" 2>/dev/null; then
-      stage_count=$((stage_count + 1))
-    fi
-  done
-done
-
-# app_v2.xml — OxygenOS marks Contacts/InCallUI/Messages <disable> on this
-# firmware. Strip ONLY those three lines (preserve every other entry) into the
-# tree. Skip files we didn't actually change.
-for base in my_stock my_region my_product my_carrier my_heytap my_preload my_bigball; do
-  real="/$base/etc/config/app_v2.xml"
-  [ -f "$real" ] || continue
-  out="$MODPATH$real"
-  mkdir -p "$(dirname "$out")" || continue
-  sed -e '/<disable[^>]*"com\.android\.contacts"/d' \
-      -e '/<disable[^>]*"com\.android\.incallui"/d' \
-      -e '/<disable[^>]*"com\.android\.mms"/d' \
-      "$real" > "$out" 2>/dev/null
-  if cmp -s "$real" "$out"; then rm -f "$out"; else stage_count=$((stage_count + 1)); fi
-done
-ui_print "  Staged $stage_count /my_* override(s) into the module tree"
-
-# Prefer NoMount hookless serving for the /my_* tree (zero mounts = undetectable).
-# Benign for other modules; no-op when NoMount isn't installed.
+# The stripped configs live in the module's own partition tree so the active
+# mounter serves them: hooklessly under the NoMount Suite (zero mounts), or
+# magic-mount elsewhere (fallback bind in post-fs-data.sh). Generated here so it
+# adapts to THIS device's region/firmware; the Action button regenerates them.
+ui_print "  $(sh "$MODPATH/stage_overrides.sh" "$MODPATH")"
 if [ -d /data/adb/modules/meta-nomount ]; then
-  mkdir -p /data/adb/nomount
-  touch /data/adb/nomount/my_hookless
   ui_print "  NoMount detected: /my_* served hooklessly (no mounts to detect)"
 else
   ui_print "  No NoMount: /my_* will be bound at boot (post-fs-data fallback)"
@@ -106,7 +65,7 @@ fi
 set_perm_recursive "$MODPATH" 0 0 0755 0644
 
 # Boot + action scripts must be executable
-for s in post-fs-data.sh service.sh action.sh uninstall.sh; do
+for s in post-fs-data.sh service.sh action.sh uninstall.sh stage_overrides.sh; do
   [ -f "$MODPATH/$s" ] && set_perm "$MODPATH/$s" 0 0 0755 0755
 done
 

@@ -35,6 +35,14 @@ for u in 0 999; do
         "/data/system_ce/$u/shortcut_service/packages/com.android.mms.xml.reservecopy"
 done
 
+# --- Regenerate the /my_* overrides ------------------------------------------
+echo " Re-staging /my_* overrides..."
+if [ -f "$MODDIR/stage_overrides.sh" ]; then
+  echo " [+] $(sh "$MODDIR/stage_overrides.sh" "$MODDIR")"
+else
+  echo " [!] stage_overrides.sh missing - reinstall the module"
+fi
+
 # --- Reapply bundled configs -------------------------------------------------
 copy_cfg() {
   src="$CONFIG_DIR/$1"; dstdir="$2"; label="$3"
@@ -57,5 +65,6 @@ am force-stop com.coloros.accessibilityassistant 2>/dev/null
 am force-stop com.oplus.aicall 2>/dev/null
 am force-stop com.android.systemui 2>/dev/null
 
-echo " Done. Reboot normally. If an app is still stuck: tap this action"
+echo " Done. Reboot to apply the regenerated overrides. If an app is still"
+echo " stuck after that: tap this action"
 echo " once more, then uninstall the module, reboot, and reinstall it."
