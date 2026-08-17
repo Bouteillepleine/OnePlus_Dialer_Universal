@@ -66,7 +66,7 @@ set_perm_recursive "$MODPATH" 0 0 0755 0644
 
 # Boot + action scripts must be executable
 for s in post-fs-data.sh service.sh action.sh uninstall.sh stage_overrides.sh; do
-  [ -f "$MODPATH/$s" ] && set_perm "$MODPATH/$s" 0 0 0755 0755
+  [ -f "$MODPATH/$s" ] && set_perm "$MODPATH/$s" 0 0 0755
 done
 
 # APKs stay 0644 (default) and are mounted read-only as system priv-app.
