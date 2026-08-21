@@ -1,30 +1,41 @@
 # OnePlus Dialer & Messages (Android 16)
 
 [![Build module](https://github.com/Bouteillepleine/OnePlus_Dialer_Universal/actions/workflows/build.yml/badge.svg)](https://github.com/Bouteillepleine/OnePlus_Dialer_Universal/actions/workflows/build.yml)
-[![Latest release](https://img.shields.io/github/v/release/Bouteillepleine/OnePlus_Dialer_Universal)](https://github.com/Bouteillepleine/OnePlus_Dialer_Universal/releases/latest)
 
 A KernelSU / Magisk module that re-enables the **OnePlus Phone (Contacts), Dialer (InCallUI) and Messages (Mms)** apps — with **call recording** — on OxygenOS 16 builds where the region firmware ships them disabled.
 
-Tested on the **OnePlus 15 (CPH2747)**, OxygenOS 16 (Android 16). Should work on other OnePlus / OPPO / Realme devices that use the same `my_stock` / `my_region` app-platform layout.
+Tested on the **OnePlus 15 (CPH2747)** with the NoMount Suite, and on the **OnePlus 11 (CPH2449, OOS 16.0.5.1002)** with magic_mount_rs.
 
 ---
 
 ## What it does
 
-OxygenOS ships the ColorOS Contacts / InCallUI / Mms on the firmware but marks them `<disable>` in `/my_stock/etc/config/app_v2.xml` (and the other extension partitions) on global/EU/carrier builds, so the phone falls back to Google Phone/Messages and the OnePlus call-recording dialer is unavailable.
+OxygenOS ships the ColorOS Contacts / InCallUI / Mms on the firmware but marks them `<disable>` in `app_v2.xml` on global/EU/carrier builds, so the phone falls back to Google Phone/Messages and the OnePlus call-recording dialer is unavailable.
 
-This module:
-
-1. **Re-enables the built-in apps** by reading the real `app_v2.xml` at boot and surgically stripping only the three `<disable>` lines for `com.android.contacts`, `com.android.incallui` and `com.android.mms` — every other stock entry is preserved. Done dynamically across `my_stock`, `my_region`, `my_product`, `my_carrier`, `my_heytap`, `my_preload`, `my_bigball`, so it stays correct across regions and firmware versions.
-2. **Enables call recording** by stripping the recording-restriction flags (`no_display_record`, `not_support_record`, `support_record_prompt`, `disable_ted_function`) from the vendor extension configs and bind-mounting the result back.
-3. **Overlays the full-feature Phone/Contacts, InCallUI and Messages** onto their `/product/priv-app` locations (in-place), with the matching privapp-permission files. Overlaying in place keeps a single codePath so the apps stay privileged and don't hit the `GraphicsEnvironment` null-Resources crash that a second `/system` copy triggers, and it's a SuSFS-hideable mount (no detector-visible `/data` install).
+1. **Re-enables the built-in apps** by reading the real `app_v2.xml` at boot and stripping only four `<disable>` lines: `com.android.contacts`, `com.android.incallui`, `com.android.mms` and `com.oplus.blacklistapp`. Every other stock entry is preserved. The blocklist app is included because the Messages settings screen hard-depends on its `com.oplus.provider.BlackListProvider` — without it, opening Réglages throws. Done across `my_stock`, `my_region`, `my_product`, `my_carrier`, `my_heytap`, `my_preload`, `my_bigball`.
+2. **Enables call recording** by stripping the recording-restriction flags (`no_display_record`, `not_support_record`, `support_record_prompt`, `disable_ted_function`) from the vendor extension configs.
+3. **Overlays the full-feature Phone/Contacts, InCallUI and Messages** onto their `/product/priv-app` locations, with the matching privapp-permission files.
 4. Applies the OPlus media-controller and auto-recording preference configs, and disables the safe-media-volume cap.
 
-**Native libs:** the Contacts/InCallUI builds use `extractNativeLibs=false` (libs mmap'd from inside the APK, no `lib/` dir needed); Messages (16.60.10) uses `extractNativeLibs=true`, so its 25 `.so` are shipped extracted in `lib/arm64/`.
+It does **not** ship a BlackListApp APK. Both tested ROMs already have one in `priv-app`; mounting another model's build of a privileged app over it bootloops the device, because the `privapp-permissions` allowlist is per-firmware.
 
-The **Notes/Remarques** tab needs the genuine **`com.oneplus.note`** app installed (not the look-alike `com.coloros.note`); it is a separate install, not bundled here.
+---
 
-All bind mounts are registered with **SuSFS** (`add_sus_mount` / `add_try_umount`) and KernelSU `ksud kernel umount` so the overlay is hidden.
+## How it is served
+
+One mounter owns module mounting, and which one it is changes what the module does. The active metamodule is `/data/adb/metamodule`.
+
+| Setup | Overlay | `/my_*` overrides | Notes |
+|---|---|---|---|
+| **NoMount Suite** | hookless VFS injection, **zero mounts** | staged into the module tree, served hooklessly | every process sees the module's build, including the apps themselves |
+| **magic mount / magic_mount_rs / ksud / Magisk** | real mounts | bound from `tmp/` at boot (v1.6.1 behaviour) | see the umount note below |
+
+**Umount modules.** KernelSU strips *every* module mount from an app's own mount namespace when its App Profile has *Umount modules* on. Two consequences on a magic-mount setup:
+
+- Contacts and InCallUI keep working, but the app runs the **ROM's** APK, not the module's build.
+- A package the ROM does **not** ship (`com.android.mms` on some firmware) would have no APK at its own code path at all, and dies at bind with `NullPointerException … GraphicsEnvironment.queryAngleChoice`. For that case the module also installs the APK to `/data` after boot, from its own directory. Because the mounted system copy is still there, PMS records it as an `UPDATED_SYSTEM_APP`, so it keeps `PRIVILEGED` — the app can see its APK *and* hold `READ_PRIVILEGED_PHONE_STATE`, which its settings screen needs. This never runs under NoMount.
+
+**Hiding.** Every mount the module makes is registered with SuSFS (`add_sus_mount`, plus an `add_sus_kstat`/`update_sus_kstat` pair so a bind does not report a foreign `st_dev`) and with `ksud kernel umount`. All of it is best-effort and silently does nothing on a kernel without SuSFS. A served APK is never registered for per-app umount — hiding a package's own code path from that package cannot work.
 
 ---
 
@@ -32,28 +43,21 @@ All bind mounts are registered with **SuSFS** (`add_sus_mount` / `add_try_umount
 
 If the device fails to finish booting **three times in a row**, the module turns itself off: it writes its own `skip_mount`, so the next boot comes up without the overlay instead of looping. `service.sh` clears the counter as soon as `sys.boot_completed` is set, so ordinary reboots never count towards it. The Action button reports a tripped guard; delete `skip_mount` and `.guard_tripped` from the module directory to re-arm it.
 
+---
+
 ## Install
 
 1. Flash the zip in the **KernelSU** or **Magisk** manager (or `ksud module install <zip>`).
 2. Reboot.
-3. If an app still shows a stale icon or misbehaves on first boot, run the module's **Action** button once, then reboot.
+3. If an app still misbehaves on first boot, run the module's **Action** button once, then reboot.
 
-Requires root (KernelSU recommended; Magisk works). SuSFS is optional — the module degrades gracefully without it.
-
-### Alternative: install the APKs manually
-
-The bundled APKs (`system/product/priv-app/*/*.apk`) are self-contained and can also just be **sideloaded to `/data`** instead of flashing the module — e.g. via a package installer, `adb install -r <apk>`, or App Manager. Notes:
-
-- All are **Oplus platform-signed**, so they install cleanly over the ROM's copies (same signature).
-- You still need the module (or a manual `app_v2.xml` edit) to **un-disable** `com.android.contacts` / `incallui` / `mms` and to enable **call recording** — the APKs alone don't do that.
-- A `/data` install is **visible to root/integrity detectors** (Holmes etc.), whereas the module's `/product` overlay is SuSFS-hideable. If you run an auto-updater (APKUpdater/App Manager auto-install), it tends to install these to `/data` anyway and will shadow the module overlay.
-- The **Notes/Remarques** tab needs the genuine **`com.oneplus.note`** app installed alongside (it is not bundled in this module).
+There is **no in-manager update check** — the module ships no `updateJson`, so nothing is ever advertised to users. Updates are manual: download a release and flash it.
 
 ---
 
 ## The Action button
 
-Tapping the module's Action in the KernelSU manager clears dalvik/oat/app caches, clears the ported apps' data (your SMS/MMS are kept), reapplies the media + auto-recording configs, and restarts the relevant services. Use it to recover a stuck app after (re)install.
+Clears dalvik/oat/app caches, clears the ported apps' data (your SMS/MMS are kept), reapplies the media + auto-recording configs, and restarts the relevant services.
 
 ---
 
