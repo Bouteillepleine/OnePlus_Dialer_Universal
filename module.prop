@@ -4,4 +4,3 @@ version=v1.6.5
 versionCode=315
 author=XxxY
 description=OnePlus Phone, Contacts & Messages (full feature builds) with call recording.
-updateJson=https://raw.githubusercontent.com/Bouteillepleine/OnePlus_Dialer_Universal/main/update.json
