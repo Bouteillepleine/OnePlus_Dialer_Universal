@@ -32,14 +32,10 @@ jobs:
       - name: Validate module
         run: |
           set -e
-          for f in module.prop customize.sh post-fs-data.sh stage_overrides.sh mounter.sh \
+          for f in module.prop customize.sh post-fs-data.sh \
                    META-INF/com/google/android/update-binary \
                    META-INF/com/google/android/updater-script; do
             [ -f "$f" ] || { echo "::error::missing required file: $f"; exit 1; }
-          done
-          for part in product system_ext vendor odm; do
-            if [ -L "system/$part" ]; then echo "::error::system/$part is a symlink; magic mount will not serve it"; exit 1; fi
-            if [ -e "$part" ]; then echo "::error::module-root $part/ is only served by NoMount; put it under system/$part"; exit 1; fi
           done
           bad=0
           while IFS= read -r s; do
@@ -59,7 +55,7 @@ jobs:
           mkdir -p dist
           zip -r9 -X "dist/${{ steps.meta.outputs.zip }}" \
             module.prop \
-            customize.sh action.sh post-fs-data.sh service.sh stage_overrides.sh mounter.sh system.prop uninstall.sh \
+            customize.sh action.sh post-fs-data.sh service.sh system.prop uninstall.sh \
             config \
             META-INF \
             system

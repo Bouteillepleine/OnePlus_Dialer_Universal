@@ -27,29 +27,18 @@ detect_incallui_part() {
   done
   echo product
 }
-. "$MODPATH/mounter.sh"
-
 PART="$(detect_incallui_part)"
 ui_print "  InCallUI partition: /$PART"
-if [ -n "$PART" ] && [ "$PART" != "product" ] && [ -d "$MODPATH/system/product" ]; then
+if [ "$PART" != "product" ] && [ -d "$MODPATH/system/product" ]; then
   mkdir -p "$MODPATH/system/$PART"
   cp -a "$MODPATH/system/product/." "$MODPATH/system/$PART/" && rm -rf "$MODPATH/system/product"
   ui_print "  Relocated overlay: /product -> /$PART"
 fi
 
-ui_print "  $(sh "$MODPATH/stage_overrides.sh" "$MODPATH")"
-ui_print "  Active mounter: $(active_mounter)"
-if nomount_active; then
-  ui_print "  NoMount serves the whole tree hooklessly (no mounts to detect)"
-else
-  ui_print "  /my_* will be bound at boot (post-fs-data fallback);"
-  ui_print "  the priv-app overlay is served from system/product"
-fi
-
 set_perm_recursive "$MODPATH" 0 0 0755 0644
 
-for s in post-fs-data.sh service.sh action.sh uninstall.sh stage_overrides.sh mounter.sh; do
-  [ -f "$MODPATH/$s" ] && set_perm "$MODPATH/$s" 0 0 0755
+for s in post-fs-data.sh service.sh action.sh uninstall.sh; do
+  [ -f "$MODPATH/$s" ] && set_perm "$MODPATH/$s" 0 0 0755 0755
 done
 
 rm -f "$MODPATH/.bootcount" "$MODPATH/.guard_tripped" "$MODPATH/skip_mount"

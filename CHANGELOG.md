@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.6.7
+- **Reverted the module to its v1.6.1 behaviour.** v1.6.2–v1.6.6 staged the `/my_*` overrides into the module's own partition directories (`my_product/`, `my_region/`, `my_stock/` at the module root) so the NoMount Suite could serve them hooklessly. That shape is only meaningful to NoMount, and it is the one difference between this module and every other one on a magic-mount or overlayfs setup — where a bootloop has been reported. `post-fs-data.sh` again reads the live files, writes the stripped copies into `tmp/` and binds them back, on every setup, and the NoMount-specific `mounter.sh` / `stage_overrides.sh` are gone.
+- **Boot guard.** `post-fs-data.sh` counts boots and `service.sh` clears the counter once `sys.boot_completed` is set. Three boots in a row that never reach it and the module writes its own `skip_mount`, so the overlay is dropped and the device boots instead of leaving the user stuck in a bootloop. The Action button says when the guard has tripped; delete `skip_mount` and `.guard_tripped` in the module directory to re-arm.
+
 ## v1.6.6
 - **Boot guard.** `post-fs-data.sh` counts boots and `service.sh` clears the counter once `sys.boot_completed` is set. Three boots in a row without reaching that point and the module writes its own `skip_mount` — the overlay is dropped so the device boots, instead of leaving the user in a bootloop with no way in. The Action button reports when the guard has tripped; delete `skip_mount` and `.guard_tripped` in the module directory to re-arm.
 
