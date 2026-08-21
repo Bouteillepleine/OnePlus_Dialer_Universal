@@ -49,6 +49,9 @@ KSTAT_LIST="$MODDIR/.kstat.list"
 hide_mount() {
   target="$1"
   ksu_susfs add_sus_mount "$target" 2>/dev/null || true
+  case "$target" in
+    */priv-app/*|*/app/*|*/overlay/*) return 0 ;;
+  esac
   ksu_susfs add_try_umount "$target" 1 2>/dev/null || true
   ksud kernel umount add "$target" --flags 2 2>/dev/null || true
 }
@@ -69,7 +72,7 @@ bind_hide() {
   kstat_pre "$dst"
   mount -o ro,bind "$src" "$dst" 2>/dev/null || return 0
   hide_mount "$dst"
-  hide_mount "/mnt/vendor$dst"
+  case "$dst" in /mnt/vendor/*) ;; *) hide_mount "/mnt/vendor$dst" ;; esac
   kstat_post "$dst"
 }
 
