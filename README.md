@@ -28,6 +28,10 @@ All bind mounts are registered with **SuSFS** (`add_sus_mount` / `add_try_umount
 
 ---
 
+## Boot guard
+
+If the device fails to finish booting **three times in a row**, the module turns itself off: it writes its own `skip_mount`, so the next boot comes up without the overlay instead of looping. `service.sh` clears the counter as soon as `sys.boot_completed` is set, so ordinary reboots never count towards it. The Action button reports a tripped guard; delete `skip_mount` and `.guard_tripped` from the module directory to re-arm it.
+
 ## Install
 
 1. Flash the zip in the **KernelSU** or **Magisk** manager (or `ksud module install <zip>`).
