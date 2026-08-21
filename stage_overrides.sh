@@ -2,7 +2,9 @@
 # stage_overrides.sh — regenerate the /my_* config overrides in the module tree.
 # $1 = tree to write into (MODPATH at install, MODDIR from the Action button).
 TREE="${1:-${0%/*}}"
+MYDIR=${0%/*}
 PREV=/data/adb/modules/OnePlus_Dialer_Universal
+. "$MYDIR/mounter.sh"
 staged=0
 
 # Read the live path, write via a temp file: under NoMount the live path IS this
@@ -48,7 +50,10 @@ for base in my_stock my_region my_product my_carrier my_heytap my_preload my_big
     && staged=$((staged + 1))
 done
 
-if [ -d /data/adb/modules/meta-nomount ]; then
+# Ask NoMount to serve /my_* hooklessly -- only when NoMount is the mounter that
+# will actually serve this tree (see mounter.sh: the module dir can still be
+# there after the metamodule has been switched to magic_mount).
+if nomount_active; then
   mkdir -p /data/adb/nomount
   touch /data/adb/nomount/my_hookless
 fi
