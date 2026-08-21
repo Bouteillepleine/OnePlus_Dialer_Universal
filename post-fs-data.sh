@@ -4,6 +4,14 @@ MODDIR=${0%/*}
 
 nomount_active && exit 0
 
+for part in product system_ext vendor odm; do
+  [ -L "$MODDIR/system/$part" ] || continue
+  [ -L "$MODDIR/$part" ] && continue
+  [ -d "$MODDIR/$part" ] || continue
+  rm -f "$MODDIR/system/$part" || continue
+  mv -f "$MODDIR/$part" "$MODDIR/system/$part" || continue
+done
+
 hide_mount() {
   target="$1"
   ksu_susfs add_sus_mount "$target" 2>/dev/null || true

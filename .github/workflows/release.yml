@@ -1,9 +1,5 @@
 name: Auto release
 
-# When module.prop's version changes on main, cut a tagged release and
-# attach the freshly-built flashable zip. Uses the built-in GITHUB_TOKEN
-# (contents: write) — gh release create makes the tag + release + asset in
-# one shot, so no PAT is needed. Skips if a release for that version exists.
 
 on:
   push:

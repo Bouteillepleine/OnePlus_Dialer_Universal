@@ -29,16 +29,7 @@ detect_incallui_part() {
 }
 . "$MODPATH/mounter.sh"
 
-for p in product system_ext vendor odm; do
-  [ -L "$MODPATH/system/$p" ] && rm -f "$MODPATH/system/$p"
-  [ -d "$MODPATH/$p" ] || continue
-  [ -L "$MODPATH/$p" ] && { rm -f "$MODPATH/$p"; continue; }
-  mkdir -p "$MODPATH/system/$p"
-  cp -a "$MODPATH/$p/." "$MODPATH/system/$p/" && rm -rf "$MODPATH/$p"
-  ui_print "  Layout: folded /$p overlay into system/$p"
-done
-
-PART="$(detect_incallui_part)"
+PART"$(detect_incallui_part)"
 ui_print "  InCallUI partition: /$PART"
 if [ "$PART" != "product" ] && [ -d "$MODPATH/system/product" ]; then
   mkdir -p "$MODPATH/system/$PART"

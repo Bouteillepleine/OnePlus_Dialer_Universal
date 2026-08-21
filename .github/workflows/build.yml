@@ -32,18 +32,15 @@ jobs:
       - name: Validate module
         run: |
           set -e
-          # Required files must exist
           for f in module.prop customize.sh post-fs-data.sh stage_overrides.sh mounter.sh \
                    META-INF/com/google/android/update-binary \
                    META-INF/com/google/android/updater-script; do
             [ -f "$f" ] || { echo "::error::missing required file: $f"; exit 1; }
           done
-          # Overlay must be real dirs under system/<partition>
           for part in product system_ext vendor odm; do
             if [ -L "system/$part" ]; then echo "::error::system/$part is a symlink; magic mount will not serve it"; exit 1; fi
             if [ -e "$part" ]; then echo "::error::module-root $part/ is only served by NoMount; put it under system/$part"; exit 1; fi
           done
-          # Shell scripts / installer must be LF (CR breaks them on Android)
           bad=0
           while IFS= read -r s; do
             if grep -lU $'\r' "$s" >/dev/null 2>&1; then
@@ -51,7 +48,6 @@ jobs:
             fi
           done < <(git ls-files '*.sh' 'META-INF/com/google/android/update-binary' 'META-INF/com/google/android/updater-script')
           [ "$bad" = 0 ] || exit 1
-          # versionCode must be an integer
           case "${{ steps.meta.outputs.code }}" in
             ''|*[!0-9]*) echo "::error::versionCode is not numeric"; exit 1;;
           esac
@@ -61,8 +57,6 @@ jobs:
         run: |
           set -e
           mkdir -p dist
-          # Only the actual module components go in the flashable zip —
-          # never README/CHANGELOG/LICENSE/update.json/.git*/.github.
           zip -r9 -X "dist/${{ steps.meta.outputs.zip }}" \
             module.prop \
             customize.sh action.sh post-fs-data.sh stage_overrides.sh mounter.sh system.prop uninstall.sh \
