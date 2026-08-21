@@ -1,7 +1,7 @@
 id=OnePlus_Dialer_Universal
 name=OnePlus Dialer & Messages (Android 16)
-version=v1.6.4
-versionCode=314
+version=v1.6.5
+versionCode=315
 author=YxxX
 description=OnePlus Phone, Contacts & Messages (full feature builds) with call recording.
 updateJson=https://raw.githubusercontent.com/Bouteillepleine/OnePlus_Dialer_Universal/main/update.json

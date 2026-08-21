@@ -24,6 +24,12 @@ This module:
 
 The **Notes/Remarques** tab needs the genuine **`com.oneplus.note`** app installed (not the look-alike `com.coloros.note`); it is a separate install, not bundled here.
 
+## Mounters
+
+The priv-app overlay ships as a classic `system/product/...` tree, which every mounter serves — magic mount (`magic_mount`, `magic_mount_rs`, the built-in `ksud` mounter, Magisk) hoists it onto `/product` through the `/system/product` SAR symlink, and the **NoMount Suite** serves it hooklessly (zero mounts).
+
+The `/my_*` overrides (`app_v2.xml`, the call-recording flags) are different: `my_product` / `my_region` / `my_stock` are not partitions a magic mounter knows about. Under NoMount the module's staged `my_*` tree is served with everything else; under any other mounter `post-fs-data.sh` binds those files itself. Which path is taken is decided by the **active metamodule** (`/data/adb/metamodule`), not by whether NoMount happens to be installed — get that wrong and the `<disable>` lines survive, which looks like *the apps are present in `/product` but not installed*.
+
 All bind mounts are registered with **SuSFS** (`add_sus_mount` / `add_try_umount`) and KernelSU `ksud kernel umount` so the overlay is hidden.
 
 ---

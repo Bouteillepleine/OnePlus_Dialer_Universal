@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.6.5
+- **Fix: the module did nothing on a non-NoMount metamodule.** `post-fs-data.sh` and `stage_overrides.sh` decided "NoMount is serving this tree" from `[ -d /data/adb/modules/meta-nomount ]`. Switching the active metamodule (to `magic_mount` / `magic_mount_rs`) or disabling NoMount leaves that directory in place, so the test still passed, the `/my_*` fallback binds were skipped — and nothing served the overrides. The `app_v2.xml` `<disable>` lines then survived and OPlus' app-platform turned the apps off at boot: **the APKs were mounted in `/product` but Contacts/Messages were not installed**. Detection now reads the authoritative `/data/adb/metamodule` link (plus `disable`/`remove`/`skip_mount`) via the new `mounter.sh`.
+- **Fix: `/product` overlay in the "auto_mount" layout is invisible to magic mount.** A tree with real partition dirs at the module root plus a `system/product -> ../product` convergence symlink is served by NoMount but by nothing else: magic mount walks `<module>/system` only and does not follow a symlink there, so the APKs are never mounted (and hoisting that symlink node can try to replace `/product` itself). `customize.sh` now folds any such layout back under `system/<partition>`, which every mounter understands — NoMount included, it maps `system/product` onto `/product` through the SAR alias. CI fails the build if the layout regresses.
+- **Fix:** the magic-mount fallback registered the SuSFS/umount hides against `/system/product/...`, which is not where the files end up. It now hides the hoisted path (`/product/...`) whenever `/system/<partition>` is a symlink.
+- The Action button now reports the active mounter, where each of the three packages is installed from, and whether an `app_v2.xml` still disables them.
+
 ## v1.6.4
 - Installer no longer prints `chcon: invalid context: 0755`. `set_perm` takes the SELinux context as its 5th argument and `customize.sh` was passing the mode again, so the `chcon` for every boot script failed (harmless — the root manager sets `u:object_r:system_file:s0` itself — but it looked like a failed install).
 
