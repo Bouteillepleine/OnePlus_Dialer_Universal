@@ -56,5 +56,6 @@ jobs:
         run: |
           gh release create "${{ steps.meta.outputs.version }}" \
             "dist/${{ steps.meta.outputs.zip }}" \
+            --draft \
             --title "${{ steps.meta.outputs.version }}" \
             --generate-notes
