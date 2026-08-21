@@ -84,7 +84,17 @@ strip_to() {
   mv -f "$_dst.new" "$_dst"
 }
 
-rm -f "$KSTAT_LIST"
+rm -rf "$MODDIR/dataapp"
+rm -f "$KSTAT_LIST" "$MODDIR/.dataapp.list"
+if [ "$DO_BIND" = 1 ] && [ -d "$MODDIR/system" ]; then
+  find "$MODDIR/system" -name '*.apk' | while read -r apk; do
+    rel="${apk#$MODDIR/system}"
+    part="${rel#/}"; part="${part%%/*}"
+    [ -L "/system/$part" ] && live="$rel" || live="/system$rel"
+    [ -f "$live" ] || echo "$apk" >> "$MODDIR/.dataapp.list"
+  done
+fi
+
 if [ "$DO_BIND" = 1 ] && [ -d "$MODDIR/system" ]; then
   find "$MODDIR/system" -type f | while read -r file; do
     rel="${file#$MODDIR/system}"
@@ -115,12 +125,13 @@ done
 for p in $MY_PARTS; do
   real="/$p/etc/config/app_v2.xml"
   [ -f "$real" ] || continue
-  grep -qE '<disable[^>]*"com\.android\.(contacts|incallui|mms)"' "$real" 2>/dev/null \
+  grep -qE '<disable[^>]*"(com\.android\.(contacts|incallui|mms)|com\.oplus\.blacklistapp)"' "$real" 2>/dev/null \
     || { [ "$DO_BIND" = 0 ] && [ -f "$STAGE$real" ]; } || continue
   strip_to "$real" "$STAGE$real" \
     -e '/<disable[^>]*"com\.android\.contacts"/d' \
     -e '/<disable[^>]*"com\.android\.incallui"/d' \
-    -e '/<disable[^>]*"com\.android\.mms"/d' || continue
+    -e '/<disable[^>]*"com\.android\.mms"/d' \
+    -e '/<disable[^>]*"com\.oplus\.blacklistapp"/d' || continue
   cmp -s "$real" "$STAGE$real" || bind_hide "$STAGE$real" "$real"
 done
 
