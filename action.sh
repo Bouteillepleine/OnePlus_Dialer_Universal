@@ -1,18 +1,10 @@
 #!/system/bin/sh
-# action.sh — KernelSU "Action" button. Runs as root from the module dir.
-# Recovers stuck/misbehaving dialer & messages after (re)install by clearing
-# caches and reapplying the OPlus media + auto-recording configs.
 MODDIR=${0%/*}
 CONFIG_DIR="$MODDIR/config"
 . "$MODDIR/mounter.sh"
 
 echo " OnePlus Dialer & Messages - maintenance action"
 
-# --- Status ------------------------------------------------------------------
-# The two things that actually decide whether this module works, reported before
-# anything is touched: who is serving the tree, and whether the three apps are
-# installed. "present in /product but not installed" means the overlay mounted
-# but the app_v2.xml <disable> strip did not take.
 echo " Mounter: $(active_mounter)"
 nomount_active || echo " (non-NoMount: /my_* overrides are bound by post-fs-data.sh)"
 for pkg in com.android.contacts com.android.incallui com.android.mms; do
@@ -30,7 +22,6 @@ for f in /my_stock/etc/config/app_v2.xml /my_region/etc/config/app_v2.xml; do
   fi
 done
 
-# --- Cache purge (forces a clean re-odex / re-init of the mounted apps) ------
 echo " Clearing dalvik-cache..."
 rm -rf /data/dalvik-cache/arm/* /data/dalvik-cache/arm64/*
 
@@ -58,7 +49,6 @@ for u in 0 999; do
         "/data/system_ce/$u/shortcut_service/packages/com.android.mms.xml.reservecopy"
 done
 
-# --- Regenerate the /my_* overrides ------------------------------------------
 echo " Re-staging /my_* overrides..."
 if [ -f "$MODDIR/stage_overrides.sh" ]; then
   echo " [+] $(sh "$MODDIR/stage_overrides.sh" "$MODDIR")"
@@ -66,7 +56,6 @@ else
   echo " [!] stage_overrides.sh missing - reinstall the module"
 fi
 
-# --- Reapply bundled configs -------------------------------------------------
 copy_cfg() {
   src="$CONFIG_DIR/$1"; dstdir="$2"; label="$3"
   if [ -f "$src" ]; then

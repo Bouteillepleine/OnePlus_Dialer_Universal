@@ -1,16 +1,10 @@
 #!/system/bin/sh
-# stage_overrides.sh — regenerate the /my_* config overrides in the module tree.
-# $1 = tree to write into (MODPATH at install, MODDIR from the Action button).
 TREE="${1:-${0%/*}}"
 MYDIR=${0%/*}
 PREV=/data/adb/modules/OnePlus_Dialer_Universal
 . "$MYDIR/mounter.sh"
 staged=0
 
-# Read the live path, write via a temp file: under NoMount the live path IS this
-# module's own staged file, so writing straight to the destination would truncate
-# what we are reading. Re-mounting the partition does not help — the hookless
-# injection is per-inode, so a second mount of the same device shows it too.
 strip_to() {
   _src=$1; _dst=$2; shift 2
   mkdir -p "${_dst%/*}" 2>/dev/null || return 1
@@ -21,8 +15,6 @@ strip_to() {
 
 for base in my_product my_region my_bigball; do
   [ -d "/$base/etc/extension" ] || continue
-  # Files still carrying a blocking flag, plus anything a previous install staged
-  # (its live override is what hides the flag from this grep).
   list=$(grep -rl -e 'no_display_record' -e 'support_record_prompt' \
                   -e 'not_support_record' -e 'disable_ted_function' \
                   "/$base/etc/extension" 2>/dev/null)
@@ -39,8 +31,6 @@ done
 for base in my_stock my_region my_product my_carrier my_heytap my_preload my_bigball; do
   real="/$base/etc/config/app_v2.xml"
   [ -f "$real" ] || continue
-  # Needed when the ROM still disables the three apps, or when a previous install
-  # staged this path — our own live override is why the greps come back clean.
   grep -qE '<disable[^>]*"com\.android\.(contacts|incallui|mms)"' "$real" 2>/dev/null \
     || [ -f "$PREV$real" ] || continue
   strip_to "$real" "$TREE$real" \
@@ -50,9 +40,6 @@ for base in my_stock my_region my_product my_carrier my_heytap my_preload my_big
     && staged=$((staged + 1))
 done
 
-# Ask NoMount to serve /my_* hooklessly -- only when NoMount is the mounter that
-# will actually serve this tree (see mounter.sh: the module dir can still be
-# there after the metamodule has been switched to magic_mount).
 if nomount_active; then
   mkdir -p /data/adb/nomount
   touch /data/adb/nomount/my_hookless

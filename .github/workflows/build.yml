@@ -38,12 +38,7 @@ jobs:
                    META-INF/com/google/android/updater-script; do
             [ -f "$f" ] || { echo "::error::missing required file: $f"; exit 1; }
           done
-          # Layout: the overlay must be REAL dirs under system/<partition>.
-          # Magic mount (magic_mount, magic_mount_rs, ksud, Magisk) walks
-          # <module>/system only and does not follow a symlink there, so a
-          # module-root partition dir, or a system/product -> ../product
-          # convergence symlink, means the APKs are never served. NoMount
-          # reads the classic layout too, so classic is the portable one.
+          # Overlay must be real dirs under system/<partition>
           for part in product system_ext vendor odm; do
             if [ -L "system/$part" ]; then echo "::error::system/$part is a symlink; magic mount will not serve it"; exit 1; fi
             if [ -e "$part" ]; then echo "::error::module-root $part/ is only served by NoMount; put it under system/$part"; exit 1; fi
