@@ -59,7 +59,7 @@ Tapping the module's Action in the KernelSU manager clears dalvik/oat/app caches
 
 ## Credits
 
-- Module by **YxxX**.
+- Module by **XxxY**.
 - OnePlus / OxygenOS system apps and configs are property of **OPlus / OnePlus** and are redistributed here for interoperability on owned devices.
 
 ## Disclaimer
