@@ -29,9 +29,9 @@ detect_incallui_part() {
 }
 . "$MODPATH/mounter.sh"
 
-PART"$(detect_incallui_part)"
+PART="$(detect_incallui_part)"
 ui_print "  InCallUI partition: /$PART"
-if [ "$PART" != "product" ] && [ -d "$MODPATH/system/product" ]; then
+if [ -n "$PART" ] && [ "$PART" != "product" ] && [ -d "$MODPATH/system/product" ]; then
   mkdir -p "$MODPATH/system/$PART"
   cp -a "$MODPATH/system/product/." "$MODPATH/system/$PART/" && rm -rf "$MODPATH/system/product"
   ui_print "  Relocated overlay: /product -> /$PART"
