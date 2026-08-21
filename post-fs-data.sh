@@ -2,6 +2,17 @@
 MODDIR=${0%/*}
 . "$MODDIR/mounter.sh"
 
+COUNT=$(cat "$MODDIR/.bootcount" 2>/dev/null || echo 0)
+case "$COUNT" in ''|*[!0-9]*) COUNT=0 ;; esac
+COUNT=$((COUNT + 1))
+echo "$COUNT" > "$MODDIR/.bootcount"
+if [ "$COUNT" -ge 3 ]; then
+  : > "$MODDIR/skip_mount"
+  : > "$MODDIR/.guard_tripped"
+  echo "OnePlus_Dialer_Universal: boot guard tripped (count=$COUNT), overlay skipped" > /dev/kmsg 2>/dev/null
+  exit 0
+fi
+
 nomount_active && exit 0
 
 for part in product system_ext vendor odm; do

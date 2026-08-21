@@ -59,7 +59,7 @@ jobs:
           mkdir -p dist
           zip -r9 -X "dist/${{ steps.meta.outputs.zip }}" \
             module.prop \
-            customize.sh action.sh post-fs-data.sh stage_overrides.sh mounter.sh system.prop uninstall.sh \
+            customize.sh action.sh post-fs-data.sh service.sh stage_overrides.sh mounter.sh system.prop uninstall.sh \
             config \
             META-INF \
             system

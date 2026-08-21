@@ -1,7 +1,7 @@
 SKIPMOUNT=false
 PROPFILE=true
 POSTFSDATA=true
-LATESTARTSERVICE=false
+LATESTARTSERVICE=true
 
 ui_print " "
 ui_print "  OnePlus Phone, Contacts & Messages (Android 16)"
@@ -51,6 +51,8 @@ set_perm_recursive "$MODPATH" 0 0 0755 0644
 for s in post-fs-data.sh service.sh action.sh uninstall.sh stage_overrides.sh mounter.sh; do
   [ -f "$MODPATH/$s" ] && set_perm "$MODPATH/$s" 0 0 0755
 done
+
+rm -f "$MODPATH/.bootcount" "$MODPATH/.guard_tripped" "$MODPATH/skip_mount"
 
 ui_print "  Install complete. Reboot to apply."
 ui_print "  If an app misbehaves after boot, run the module's"

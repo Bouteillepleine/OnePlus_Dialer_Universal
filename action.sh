@@ -6,6 +6,7 @@ CONFIG_DIR="$MODDIR/config"
 echo " OnePlus Dialer & Messages - maintenance action"
 
 echo " Mounter: $(active_mounter)"
+[ -f "$MODDIR/.guard_tripped" ] && echo " [!] boot guard tripped earlier - overlay is skipped (rm $MODDIR/skip_mount $MODDIR/.guard_tripped to re-enable)"
 nomount_active || echo " (non-NoMount: /my_* overrides are bound by post-fs-data.sh)"
 for pkg in com.android.contacts com.android.incallui com.android.mms; do
   path=$(pm path "$pkg" 2>/dev/null | head -1 | cut -d: -f2-)

@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.6.6
+- **Boot guard.** `post-fs-data.sh` counts boots and `service.sh` clears the counter once `sys.boot_completed` is set. Three boots in a row without reaching that point and the module writes its own `skip_mount` — the overlay is dropped so the device boots, instead of leaving the user in a bootloop with no way in. The Action button reports when the guard has tripped; delete `skip_mount` and `.guard_tripped` in the module directory to re-arm.
+
 ## v1.6.5
 - **Fix: the module did nothing on a non-NoMount metamodule.** `post-fs-data.sh` and `stage_overrides.sh` decided "NoMount is serving this tree" from `[ -d /data/adb/modules/meta-nomount ]`. Switching the active metamodule (to `magic_mount` / `magic_mount_rs`) or disabling NoMount leaves that directory installed and enabled, so the test still passed, the `/my_*` fallback binds were skipped — and nothing served the overrides. The `app_v2.xml` `<disable>` lines then survived and OPlus' app-platform turned the apps off at boot: **the APKs were mounted in `/product` but Contacts/Messages were not installed**. Detection now reads the authoritative `/data/adb/metamodule` link (plus `disable`/`remove`/`skip_mount`) via the new `mounter.sh`.
 - **Fix: the overlay was invisible to magic mount after a metamodule switch.** `ksud`'s installer moves `system/product` to the module root and leaves `system/product -> ../product`; `magic_mount_rs` keeps the real tree under `system/` instead. A module installed under one and then served by the other is in the wrong shape — magic mount collects that symlink as a symlink node and never walks it, so the APKs are never served. `post-fs-data.sh` now reconciles the layout at boot, before the metamodule mount pass runs.
