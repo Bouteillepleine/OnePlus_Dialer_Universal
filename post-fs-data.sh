@@ -88,6 +88,7 @@ rm -rf "$MODDIR/dataapp"
 rm -f "$KSTAT_LIST" "$MODDIR/.dataapp.list"
 if [ "$DO_BIND" = 1 ] && [ -d "$MODDIR/system" ]; then
   find "$MODDIR/system" -name '*.apk' | while read -r apk; do
+    case "$apk" in */overlay/*) continue ;; esac
     rel="${apk#$MODDIR/system}"
     part="${rel#/}"; part="${part%%/*}"
     [ -L "/system/$part" ] && live="$rel" || live="/system$rel"

@@ -29,10 +29,13 @@ detect_incallui_part() {
 }
 PART="$(detect_incallui_part)"
 ui_print "  InCallUI partition: /$PART"
-if [ "$PART" != "product" ] && [ -d "$MODPATH/system/product" ]; then
-  mkdir -p "$MODPATH/system/$PART"
-  cp -a "$MODPATH/system/product/." "$MODPATH/system/$PART/" && rm -rf "$MODPATH/system/product"
-  ui_print "  Relocated overlay: /product -> /$PART"
+if [ "$PART" != "product" ] && [ -d "$MODPATH/system/product/priv-app" ]; then
+  mkdir -p "$MODPATH/system/$PART/etc"
+  cp -a "$MODPATH/system/product/priv-app" "$MODPATH/system/$PART/" && rm -rf "$MODPATH/system/product/priv-app"
+  if [ -d "$MODPATH/system/product/etc/permissions" ]; then
+    cp -a "$MODPATH/system/product/etc/permissions" "$MODPATH/system/$PART/etc/" && rm -rf "$MODPATH/system/product/etc/permissions"
+  fi
+  ui_print "  Relocated apps: /product -> /$PART (RRO and sysconfig stay on /product)"
 fi
 
 set_perm_recursive "$MODPATH" 0 0 0755 0644

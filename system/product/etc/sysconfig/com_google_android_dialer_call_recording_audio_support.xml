@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<permissions>
+    <!-- Starting from Android R and above, the device with the system feature included would get Dialer call recording. -->
+    <feature name="com.google.android.apps.dialer.call_recording_audio" />
+</permissions>

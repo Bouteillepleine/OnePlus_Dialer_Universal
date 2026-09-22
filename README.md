@@ -10,6 +10,8 @@ Tested on OnePlus 15 (CPH2747) and OnePlus 11 (CPH2449).
 - Strips the call-recording restriction flags from the vendor extension configs.
 - Overlays the full-feature Contacts (16.85.10), InCallUI (16.23.0) and Messages (16.60.10) onto the partition the ROM keeps them on, with their privapp-permission files.
 - Applies the OPlus media-controller and auto-recording configs.
+- Installs the OPlus comms RROs (`/product/overlay`) so the framework's default phone, SMS and system-contacts apps point at the OnePlus builds rather than Google's.
+- Declares the `com.google.android.apps.dialer.call_recording_audio` feature (`/product/etc/sysconfig`), which ROW/EU/GB/US firmware omits, so Google Phone can record too.
 
 ## Notes
 
