@@ -8,16 +8,17 @@ Tested on OnePlus 15 (CPH2747) and OnePlus 11 (CPH2449).
 
 - Strips the `<disable>` lines for `com.android.contacts`, `com.android.incallui`, `com.android.mms` and `com.oplus.blacklistapp` from `app_v2.xml`.
 - Strips the call-recording restriction flags from the vendor extension configs.
-- Overlays the full-feature Contacts, InCallUI and Messages onto `/product/priv-app`, with their privapp-permission files.
+- Overlays the full-feature Contacts (16.85.10), InCallUI (16.23.0) and Messages (16.60.10) onto the partition the ROM keeps them on, with their privapp-permission files.
 - Applies the OPlus media-controller and auto-recording configs.
 
 ## Notes
 
-- **NoMount Suite**: served hooklessly, zero mounts. **Magic mount / Magisk**: real mounts, `/my_*` bound at boot.
+- Works with or without NoMount. **NoMount Suite**: served hooklessly, zero mounts. **Magisk / plain KernelSU magic mount**: real bind mounts, `/my_*` bound at boot, registered with SuSFS where available.
 - With KernelSU *Umount modules* on, an app cannot see module mounts. A package the ROM does not ship is therefore also installed to `/data`, where it stays privileged as an `UPDATED_SYSTEM_APP`.
 - Mounts are registered with SuSFS and `ksud kernel umount` where available.
 - **Boot guard**: three failed boots in a row and the module writes its own `skip_mount` and stops mounting. Delete `skip_mount` and `.guard_tripped` to re-arm.
 - No update check — flash releases manually.
+- The module card names the three app versions and the partition the overlay landed on. The Action button clears dalvik/app caches and re-applies the configs.
 
 ## Install
 
