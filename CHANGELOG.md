@@ -1,14 +1,14 @@
 # Changelog
 
 ## v1.8
-- Ships the OPlus comms RROs the India/Russia/Turkey firmwares use: `OplusConfigOverlayCommsEx` (`config_defaultDialer`, `config_systemContacts`) and `OplusConfigOverlayMms` (`config_defaultSms`), into `/product/overlay`. They are static overlays at priority 1, so they outrank the `GmsConfigOverlayComms` at priority 0 that points the framework at Google Phone, Messages and Contacts. Effect: the OnePlus apps become the framework defaults instead of needing a manual trip through Default apps, and the `SYSTEM_CONTACTS` role goes to `com.android.contacts`.
-- Ships `com_google_android_dialer_call_recording_audio_support.xml` into `/product/etc/sysconfig`, declaring the `com.google.android.apps.dialer.call_recording_audio` feature that 30 of the 47 OPlus regions get but ROW, EU, GB and US do not. This is what unlocks recording in **Google Phone**; the OnePlus dialer's own recording was already handled. Google still applies its own country checks, so the feature flag enables the path but does not guarantee the button.
-- `customize.sh` only relocates `priv-app` and `etc/permissions` when the ROM keeps the dialer apps off `/product`. The RRO and sysconfig files stay on `/product`, where the framework scans for them on every device.
+- Adds the OPlus comms RROs from the IN/RU/TR firmware. The framework's default phone, SMS and system-contacts apps now point at the OnePlus builds instead of Google's.
+- Declares `com.google.android.apps.dialer.call_recording_audio`, which ROW/EU/GB/US firmware omits, so Google Phone can record too.
+- Only `priv-app` and `etc/permissions` relocate off `/product`; the RRO and sysconfig stay there.
 
 ## v1.7
-- Contacts refreshed to **16.85.10** and InCallUI to **16.23.0**, pulled from the OnePlus 15 India full OTA `CPH2745_16.0.10.601(EX01)` (build `CPH2745_11.A.48_0480_202609111033`, patch 2026-09-01). Both carry the same OPlus signing certificate and the same native-library packaging as the builds they replace, so they drop in without any `lib/arm64` change.
-- Messages stays at **16.60.10**: the India build ships 16.52.60, which is a lower versionCode.
-- The module card now reads ✅ once the overlay is live (⛔ if the boot guard tripped) and says what the Action button does.
+- Contacts **16.85.10** and InCallUI **16.23.0**, from the OnePlus 15 India OTA `CPH2745_16.0.10.601(EX01)`.
+- Messages stays **16.60.10** — India ships 16.52.60, a lower versionCode.
+- Module card shows ✅ while the overlay is live, and what the Action button is for.
 
 ## v1.6.5
 - Do not ship a BlackListApp APK; mounting another model's build over the ROM's own bootloops the device. The `app_v2.xml` strip alone enables it.
