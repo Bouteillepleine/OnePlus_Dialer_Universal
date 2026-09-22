@@ -3,7 +3,7 @@
 ## v1.7
 - Contacts refreshed to **16.85.10** and InCallUI to **16.23.0**, pulled from the OnePlus 15 India full OTA `CPH2745_16.0.10.601(EX01)` (build `CPH2745_11.A.48_0480_202609111033`, patch 2026-09-01). Both carry the same OPlus signing certificate and the same native-library packaging as the builds they replace, so they drop in without any `lib/arm64` change.
 - Messages stays at **16.60.10**: the India build ships 16.52.60, which is a lower versionCode.
-- The module card now names the three app versions, the partition the overlay landed on, and what the Action button does.
+- The module card now reads ✅ once the overlay is live (⛔ if the boot guard tripped) and says what the Action button does.
 
 ## v1.6.5
 - Do not ship a BlackListApp APK; mounting another model's build over the ROM's own bootloops the device. The `app_v2.xml` strip alone enables it.

@@ -18,7 +18,7 @@ Tested on OnePlus 15 (CPH2747) and OnePlus 11 (CPH2449).
 - Mounts are registered with SuSFS and `ksud kernel umount` where available.
 - **Boot guard**: three failed boots in a row and the module writes its own `skip_mount` and stops mounting. Delete `skip_mount` and `.guard_tripped` to re-arm.
 - No update check — flash releases manually.
-- The module card names the three app versions and the partition the overlay landed on. The Action button clears dalvik/app caches and re-applies the configs.
+- The module card shows ✅ once the overlay is live, or ⛔ if the boot guard tripped. The Action button clears dalvik/app caches and re-applies the configs.
 
 ## Install
 

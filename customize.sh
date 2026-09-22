@@ -35,8 +35,6 @@ if [ "$PART" != "product" ] && [ -d "$MODPATH/system/product" ]; then
   ui_print "  Relocated overlay: /product -> /$PART"
 fi
 
-sed -i "s|@PART@|$PART|" "$MODPATH/module.prop"
-
 set_perm_recursive "$MODPATH" 0 0 0755 0644
 
 for s in post-fs-data.sh service.sh action.sh uninstall.sh; do

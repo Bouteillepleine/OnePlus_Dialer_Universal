@@ -37,3 +37,10 @@ if [ -s "$MODDIR/.kstat.list" ]; then
   done < "$MODDIR/.kstat.list"
   rm -f "$MODDIR/.kstat.list"
 fi
+
+if [ -f "$MODDIR/.guard_tripped" ]; then
+  DESC="⛔ overlay skipped, boot guard tripped · Action: clear caches"
+else
+  DESC="✅ Call recording for OxygenOS · Action: clear caches"
+fi
+sed -i "s|^description=.*|description=$DESC|" "$MODDIR/module.prop"
