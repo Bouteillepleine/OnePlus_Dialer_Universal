@@ -20,7 +20,7 @@ Flash in KernelSU or Magisk, reboot. If an app misbehaves, tap the module's Acti
 - Works with or without NoMount. Under **NoMount Suite** it is served hooklessly with zero mounts; under **Magisk / plain KernelSU** it bind-mounts, registered with SuSFS where available.
 - **v2.0 bundles no Phone/Contacts APKs.** The ROM's copies are enabled instead — on older OxygenOS 16 builds those are simply older versions. Shipping our own stopped being safe once the ROM caught up to the same versionCodes: two builds of one version collide over the ROM's overlay and the app crash-loops. **v1.9** is the last release with them bundled, for a ROM that ships neither.
 - **Boot guard**: three failed boots and the module disables its own overlay. Delete `skip_mount` and `.guard_tripped` to re-arm.
-- The card shows ✅ once live, ⛔ if the boot guard tripped. No update check — flash releases manually.
+- The card shows ✅ once live, ⛔ if the boot guard tripped. Your root manager will offer updates when a new release is published.
 - OnePlus has its own path to the same two apps, `*#*#677776#*#*`, which force-installs Contacts and InCallUI and nothing else. It is region-gated and does not cover Messages, recording or the defaults.
 
 ## Credits

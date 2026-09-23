@@ -1,6 +1,7 @@
 id=OnePlus_Dialer_Universal
 name=OnePlus Dialer & Messages (Android 16)
-version=v2.0
-versionCode=319
+version=v2.1
+versionCode=320
 author=XxxY
 description=✅ Call recording for OxygenOS · Action: clear caches
+updateJson=https://raw.githubusercontent.com/Bouteillepleine/OnePlus_Dialer_Universal/main/update.json

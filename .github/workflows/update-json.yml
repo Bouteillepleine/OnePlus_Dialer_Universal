@@ -1,0 +1,69 @@
+name: Refresh update.json
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve the newest published release
+        id: rel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          tag=$(gh release list --limit 20 --json tagName,isDraft,isPrerelease,publishedAt \
+                  -q 'map(select(.isDraft == false and .isPrerelease == false))
+                      | sort_by(.publishedAt) | reverse | .[0].tagName')
+          [ -n "$tag" ] || { echo "::error::no published release found"; exit 1; }
+          git fetch --tags --quiet
+          ver=$(git show "$tag:module.prop"  | grep -m1 '^version='     | cut -d= -f2- | tr -d '\r')
+          code=$(git show "$tag:module.prop" | grep -m1 '^versionCode=' | cut -d= -f2- | tr -d '\r')
+          [ -n "$ver" ] && [ -n "$code" ] || { echo "::error::could not read module.prop at $tag"; exit 1; }
+          case "$code" in ''|*[!0-9]*) echo "::error::versionCode not numeric at $tag"; exit 1;; esac
+          asset="OnePlus_Dialer_${ver}.zip"
+          gh release view "$tag" --json assets -q '.assets[].name' | grep -Fxq "$asset" \
+            || { echo "::error::$asset is not attached to $tag"; exit 1; }
+          echo "tag=$tag"     >> "$GITHUB_OUTPUT"
+          echo "code=$code"   >> "$GITHUB_OUTPUT"
+          echo "ver=$ver"     >> "$GITHUB_OUTPUT"
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+
+      - name: Write update.json
+        run: |
+          set -e
+          repo="${{ github.repository }}"
+          cat > update.json <<EOF
+          {
+            "version": "${{ steps.rel.outputs.ver }}",
+            "versionCode": ${{ steps.rel.outputs.code }},
+            "zipUrl": "https://github.com/$repo/releases/download/${{ steps.rel.outputs.tag }}/${{ steps.rel.outputs.asset }}",
+            "changelog": "https://raw.githubusercontent.com/$repo/main/CHANGELOG.md"
+          }
+          EOF
+          cat update.json
+
+      - name: Commit if changed
+        run: |
+          set -e
+          if git diff --quiet -- update.json; then
+            echo "update.json already current — nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add update.json
+          git commit -m "update.json: ${{ steps.rel.outputs.ver }} [skip ci]"
+          git push origin HEAD:main

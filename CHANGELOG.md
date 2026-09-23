@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.1
+- Root managers can offer updates again: `module.prop` carries `updateJson` and the repo serves `update.json`. A workflow rewrites it whenever a release is **published**, reading the version out of `module.prop` at that tag and refusing to write a URL whose asset is not attached — so it can never advertise a draft or a missing zip.
+
 ## v2.0
 - No longer ships Contacts or InCallUI. OxygenOS `16.0.10.601` moved the ROM's own copies to **16.85.10** and **16.23.0** — the exact versionCodes this module was bundling — so two different regional builds of the same version ended up installed side by side. The ROM's `ContactsConfigOverlay` is built against its own build, and applied to the India build it failed theme resolution, crash-looping `com.android.contacts` with `IllegalStateException: You need to use a Theme.AppCompat theme`.
 - The `app_v2.xml` strip was always what enabled these apps, not the bundled APKs, and the ROM's own 16.23.0 InCallUI carries the same call-recording classes. Nothing is lost.
