@@ -12,6 +12,7 @@ Tested on OnePlus 15 (CPH2747) and OnePlus 11 (CPH2449).
 - Applies the OPlus media-controller and auto-recording configs.
 - Installs the OPlus comms RROs (`/product/overlay`) so the framework's default phone, SMS and system-contacts apps point at the OnePlus builds rather than Google's.
 - Declares the `com.google.android.apps.dialer.call_recording_audio` feature (`/product/etc/sysconfig`), which ROW/EU/GB/US firmware omits, so Google Phone can record too.
+- Mutes Google Phone's spoken recording prompt by zeroing its downloaded prompt WAVs in place, at boot and on the Action button. The OnePlus dialer's own prompt is already handled by the config strip.
 
 ## Notes
 

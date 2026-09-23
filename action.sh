@@ -48,6 +48,28 @@ copy_cfg oplus_media_controller_config_sp.xml \
 copy_cfg translatePreferences.xml \
   /data/user/0/com.coloros.accessibilityassistant/shared_prefs "Auto call-recording"
 
+GD_AUDIO=/data/data/com.google.android.dialer/files/audioinjector
+silence_disclosure() {
+  f="$1"
+  sz="$(stat -c %s "$f" 2>/dev/null)" || return 0
+  case "$sz" in ''|*[!0-9]*) return 0 ;; esac
+  [ "$sz" -gt 44 ] || return 0
+  [ "$(tail -c +45 "$f" 2>/dev/null | tr -d '\0' | wc -c)" = 0 ] && return 0
+  t="$MODDIR/.silence.tmp"
+  head -c 44 "$f" > "$t" 2>/dev/null || return 0
+  head -c "$((sz - 44))" /dev/zero >> "$t" 2>/dev/null
+  [ "$(stat -c %s "$t" 2>/dev/null)" = "$sz" ] && cat "$t" > "$f" && echo " [+] silenced $(basename "$f")"
+  rm -f "$t"
+}
+if [ -d "$GD_AUDIO" ]; then
+  for w in "$GD_AUDIO"/call_recording_*.wav; do
+    [ -f "$w" ] && silence_disclosure "$w"
+  done
+  echo " [+] Google Phone recording announcement silenced"
+else
+  echo " [-] Google Phone recording announcement: nothing to silence"
+fi
+
 echo " Restarting services..."
 am force-stop com.coloros.accessibilityassistant 2>/dev/null
 am force-stop com.oplus.aicall 2>/dev/null

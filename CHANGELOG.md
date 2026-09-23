@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.9
+- Mutes Google Phone's spoken "this call is being recorded" prompt. Those prompts are two downloaded WAVs in the dialer's own data dir, not resources in the APK, so they are rewritten in place as silence of the same length and format. The prompt still plays and still reports success, which matters: if it fails, Google Phone refuses to start the recording.
+- Runs at boot and on the Action button, because Google re-downloads those files.
+
 ## v1.8
 - Adds the OPlus comms RROs from the IN/RU/TR firmware. The framework's default phone, SMS and system-contacts apps now point at the OnePlus builds instead of Google's.
 - Declares `com.google.android.apps.dialer.call_recording_audio`, which ROW/EU/GB/US firmware omits, so Google Phone can record too.

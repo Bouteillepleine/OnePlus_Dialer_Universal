@@ -38,6 +38,30 @@ if [ -s "$MODDIR/.kstat.list" ]; then
   rm -f "$MODDIR/.kstat.list"
 fi
 
+GD_AUDIO=/data/data/com.google.android.dialer/files/audioinjector
+
+silence_disclosure() {
+  f="$1"
+  sz="$(stat -c %s "$f" 2>/dev/null)" || return 0
+  case "$sz" in ''|*[!0-9]*) return 0 ;; esac
+  [ "$sz" -gt 44 ] || return 0
+  [ "$(tail -c +45 "$f" 2>/dev/null | tr -d '\0' | wc -c)" = 0 ] && return 0
+  t="$MODDIR/.silence.tmp"
+  head -c 44 "$f" > "$t" 2>/dev/null || return 0
+  head -c "$((sz - 44))" /dev/zero >> "$t" 2>/dev/null
+  [ "$(stat -c %s "$t" 2>/dev/null)" = "$sz" ] && cat "$t" > "$f"
+  rm -f "$t"
+}
+
+n=0
+while [ "$n" -lt 12 ] && [ ! -d "$GD_AUDIO" ]; do
+  sleep 10
+  n=$((n + 1))
+done
+for w in "$GD_AUDIO"/call_recording_*.wav; do
+  [ -f "$w" ] && silence_disclosure "$w"
+done
+
 if [ -f "$MODDIR/.guard_tripped" ]; then
   DESC="⛔ overlay skipped, boot guard tripped · Action: clear caches"
 else
