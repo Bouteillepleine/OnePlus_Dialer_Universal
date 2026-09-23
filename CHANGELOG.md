@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.0
+- No longer ships Contacts or InCallUI. OxygenOS `16.0.10.601` moved the ROM's own copies to **16.85.10** and **16.23.0** — the exact versionCodes this module was bundling — so two different regional builds of the same version ended up installed side by side. The ROM's `ContactsConfigOverlay` is built against its own build, and applied to the India build it failed theme resolution, crash-looping `com.android.contacts` with `IllegalStateException: You need to use a Theme.AppCompat theme`.
+- The `app_v2.xml` strip was always what enabled these apps, not the bundled APKs, and the ROM's own 16.23.0 InCallUI carries the same call-recording classes. Nothing is lost.
+- Messages is still bundled: the ROM does not ship `com.android.mms` on any partition.
+- Dropped the install-time partition detection. Nothing is shadowed now, so Messages stays on `/product` instead of being relocated into a `/my_*` partition.
+- Older OxygenOS 16 builds are fine: they ship Contacts and InCallUI too, just older (16.0.10.500 has 16.80.15 and 16.22.0), and the strip enables whatever is there. If a ROM ships neither, the installer now says so and points at v1.9.
+
 ## v1.9
 - Mutes Google Phone's spoken "this call is being recorded" prompt. Those prompts are two downloaded WAVs in the dialer's own data dir, not resources in the APK, so they are rewritten in place as silence of the same length and format. The prompt still plays and still reports success, which matters: if it fails, Google Phone refuses to start the recording.
 - Runs at boot and on the Action button, because Google re-downloads those files.

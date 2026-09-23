@@ -1,6 +1,6 @@
 # OnePlus Dialer & Messages (Android 16)
 
-Re-enables the OnePlus **Phone (Contacts)**, **Dialer (InCallUI)** and **Messages (Mms)** apps, with **call recording**, on OxygenOS 16 builds that ship them disabled.
+Re-enables the OnePlus **Phone (Contacts)** and **Dialer (InCallUI)** the ROM ships but disables, adds **Messages (Mms)** which it does not ship at all, and unlocks **call recording** — on OxygenOS 16.
 
 Tested on OnePlus 15 (CPH2747) and OnePlus 11 (CPH2449).
 
@@ -8,7 +8,7 @@ Tested on OnePlus 15 (CPH2747) and OnePlus 11 (CPH2449).
 
 - Strips the `<disable>` lines for `com.android.contacts`, `com.android.incallui`, `com.android.mms` and `com.oplus.blacklistapp` from `app_v2.xml`.
 - Strips the call-recording restriction flags from the vendor extension configs.
-- Overlays the full-feature Contacts (16.85.10), InCallUI (16.23.0) and Messages (16.60.10) onto the partition the ROM keeps them on, with their privapp-permission files.
+- Adds Messages (`com.android.mms` 16.60.10) on `/product`, with the privapp-permission files it and the ROM's own dialer apps need. Contacts and InCallUI are **not** bundled — the ROM ships them, the `app_v2.xml` strip is what turns them on.
 - Applies the OPlus media-controller and auto-recording configs.
 - Installs the OPlus comms RROs (`/product/overlay`) so the framework's default phone, SMS and system-contacts apps point at the OnePlus builds rather than Google's.
 - Declares the `com.google.android.apps.dialer.call_recording_audio` feature (`/product/etc/sysconfig`), which ROW/EU/GB/US firmware omits, so Google Phone can record too.
@@ -21,6 +21,7 @@ Tested on OnePlus 15 (CPH2747) and OnePlus 11 (CPH2449).
 - Mounts are registered with SuSFS and `ksud kernel umount` where available.
 - **Boot guard**: three failed boots in a row and the module writes its own `skip_mount` and stops mounting. Delete `skip_mount` and `.guard_tripped` to re-arm.
 - No update check — flash releases manually.
+- Works on older OxygenOS 16 builds: they ship Contacts and InCallUI too, just older versions, and the strip enables whichever the ROM has. **v1.9** is the last release that bundles its own Phone/Contacts APKs, for a ROM that ships neither.
 - The module card shows ✅ once the overlay is live, or ⛔ if the boot guard tripped. The Action button clears dalvik/app caches and re-applies the configs.
 
 ## Install

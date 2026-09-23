@@ -5,8 +5,8 @@ LATESTARTSERVICE=true
 
 ui_print " "
 ui_print "  OnePlus Phone, Contacts & Messages (Android 16)"
-ui_print "  - Full-feature Phone/Contacts, InCallUI & Messages"
-ui_print "  - Overlaid in-place onto the detected partition"
+ui_print "  - Enables the ROM's own Phone, Contacts and Dialer"
+ui_print "  - Adds Messages, which the ROM does not ship"
 ui_print " "
 
 if [ "$API" -lt 35 ]; then
@@ -16,26 +16,23 @@ if [ "$API" -lt 35 ]; then
   ui_print " "
 fi
 
-detect_incallui_part() {
-  live="$(pm path com.android.incallui 2>/dev/null | grep -oE '/[a-z_]+/priv-app/InCallUI' | head -1)"
-  if [ -n "$live" ]; then
-    echo "$live" | cut -d/ -f2
-    return
+FOUND=""
+for p in product my_stock my_product system_ext system; do
+  if [ -f "/$p/priv-app/InCallUI/InCallUI.apk" ] || [ -f "/$p/priv-app/Contacts/Contacts.apk" ]; then
+    FOUND="$p"
+    break
   fi
-  for p in product system_ext my_stock my_product system; do
-    [ -d "/$p/priv-app/InCallUI" ] && { echo "$p"; return; }
-  done
-  echo product
-}
-PART="$(detect_incallui_part)"
-ui_print "  InCallUI partition: /$PART"
-if [ "$PART" != "product" ] && [ -d "$MODPATH/system/product/priv-app" ]; then
-  mkdir -p "$MODPATH/system/$PART/etc"
-  cp -a "$MODPATH/system/product/priv-app" "$MODPATH/system/$PART/" && rm -rf "$MODPATH/system/product/priv-app"
-  if [ -d "$MODPATH/system/product/etc/permissions" ]; then
-    cp -a "$MODPATH/system/product/etc/permissions" "$MODPATH/system/$PART/etc/" && rm -rf "$MODPATH/system/product/etc/permissions"
-  fi
-  ui_print "  Relocated apps: /product -> /$PART (RRO and sysconfig stay on /product)"
+done
+
+if [ -n "$FOUND" ]; then
+  ui_print "  ROM ships Phone/Contacts on /$FOUND - enabling those"
+else
+  ui_print " "
+  ui_print "  ! This ROM does not ship Contacts or InCallUI on any"
+  ui_print "  ! partition, so there is nothing for this build to enable."
+  ui_print "  ! Messages, call recording and the rest still install."
+  ui_print "  ! For the bundled Phone/Contacts builds, flash v1.9."
+  ui_print " "
 fi
 
 set_perm_recursive "$MODPATH" 0 0 0755 0644
