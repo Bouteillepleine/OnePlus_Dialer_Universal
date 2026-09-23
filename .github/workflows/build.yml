@@ -77,8 +77,33 @@ jobs:
           set -e
           tag="${GITHUB_REF_NAME}"
           asset="dist/${{ steps.meta.outputs.zip }}"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" "$asset" --clobber
-          else
+          name="$(basename "$asset")"
+
+          if ! gh release view "$tag" >/dev/null 2>&1; then
             gh release create "$tag" "$asset" --title "$tag" --generate-notes
+            exit 0
           fi
+
+          attached() {
+            gh release view "$tag" --json assets -q '.assets[].name' 2>/dev/null | grep -Fxq "$name"
+          }
+
+          if attached; then
+            echo "$name is already attached to $tag — nothing to do."
+            exit 0
+          fi
+
+          for i in 1 2 3; do
+            if gh release upload "$tag" "$asset" --clobber; then
+              exit 0
+            fi
+            echo "upload attempt $i failed"
+            if attached; then
+              echo "$name appeared on $tag anyway — treating as attached."
+              exit 0
+            fi
+            sleep 15
+          done
+
+          echo "::error::could not attach $name to $tag"
+          exit 1
