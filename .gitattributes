@@ -10,3 +10,4 @@ system.prop     text eol=lf
 
 # Binaries
 *.apk           binary
+*.yml           text eol=lf
