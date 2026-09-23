@@ -1,32 +1,27 @@
 # OnePlus Dialer & Messages (Android 16)
 
-Re-enables the OnePlus **Phone (Contacts)** and **Dialer (InCallUI)** the ROM ships but disables, adds **Messages (Mms)** which it does not ship at all, and unlocks **call recording** — on OxygenOS 16.
+OxygenOS 16 ships the OnePlus **Phone** and **Dialer** but switches them off, has no **Messages** app, and blocks **call recording** outside a few regions. This module undoes all three.
 
 Tested on OnePlus 15 (CPH2747) and OnePlus 11 (CPH2449).
 
 ## What it does
 
-- Strips the `<disable>` lines for `com.android.contacts`, `com.android.incallui`, `com.android.mms` and `com.oplus.blacklistapp` from `app_v2.xml`.
-- Strips the call-recording restriction flags from the vendor extension configs.
-- Adds Messages (`com.android.mms` 16.60.10) on `/product`, with the privapp-permission files it and the ROM's own dialer apps need. Contacts and InCallUI are **not** bundled — the ROM ships them, the `app_v2.xml` strip is what turns them on.
-- Applies the OPlus media-controller and auto-recording configs.
-- Installs the OPlus comms RROs (`/product/overlay`) so the framework's default phone, SMS and system-contacts apps point at the OnePlus builds rather than Google's.
-- Declares the `com.google.android.apps.dialer.call_recording_audio` feature (`/product/etc/sysconfig`), which ROW/EU/GB/US firmware omits, so Google Phone can record too.
-- Mutes Google Phone's spoken recording prompt by zeroing its downloaded prompt WAVs in place, at boot and on the Action button. The OnePlus dialer's own prompt is already handled by the config strip.
-
-## Notes
-
-- Works with or without NoMount. **NoMount Suite**: served hooklessly, zero mounts. **Magisk / plain KernelSU magic mount**: real bind mounts, `/my_*` bound at boot, registered with SuSFS where available.
-- With KernelSU *Umount modules* on, an app cannot see module mounts. A package the ROM does not ship is therefore also installed to `/data`, where it stays privileged as an `UPDATED_SYSTEM_APP`.
-- Mounts are registered with SuSFS and `ksud kernel umount` where available.
-- **Boot guard**: three failed boots in a row and the module writes its own `skip_mount` and stops mounting. Delete `skip_mount` and `.guard_tripped` to re-arm.
-- No update check — flash releases manually.
-- Works on older OxygenOS 16 builds: they ship Contacts and InCallUI too, just older versions, and the strip enables whichever the ROM has. **v1.9** is the last release that bundles its own Phone/Contacts APKs, for a ROM that ships neither.
-- The module card shows ✅ once the overlay is live, or ⛔ if the boot guard tripped. The Action button clears dalvik/app caches and re-applies the configs.
+- Turns the ROM's own Phone, Dialer and BlackList apps back on, by stripping their `<disable>` lines from `app_v2.xml` at boot.
+- Adds Messages (`com.android.mms`), the one app the ROM genuinely does not ship, with the privileged permissions it needs.
+- Unlocks call recording, in the OnePlus dialer and in Google Phone, and silences both of their "this call is being recorded" prompts.
+- Points the system's default phone, SMS and contacts apps at the OnePlus ones instead of Google's.
 
 ## Install
 
-Flash the zip in KernelSU or Magisk, reboot. If an app misbehaves, run the module's Action button once and reboot.
+Flash in KernelSU or Magisk, reboot. If an app misbehaves, tap the module's Action button once and reboot — it clears the dalvik/app caches and re-applies the configs.
+
+## Notes
+
+- Works with or without NoMount. Under **NoMount Suite** it is served hooklessly with zero mounts; under **Magisk / plain KernelSU** it bind-mounts, registered with SuSFS where available.
+- **v2.0 bundles no Phone/Contacts APKs.** The ROM's copies are enabled instead — on older OxygenOS 16 builds those are simply older versions. Shipping our own stopped being safe once the ROM caught up to the same versionCodes: two builds of one version collide over the ROM's overlay and the app crash-loops. **v1.9** is the last release with them bundled, for a ROM that ships neither.
+- **Boot guard**: three failed boots and the module disables its own overlay. Delete `skip_mount` and `.guard_tripped` to re-arm.
+- The card shows ✅ once live, ⛔ if the boot guard tripped. No update check — flash releases manually.
+- OnePlus has its own path to the same two apps, `*#*#677776#*#*`, which force-installs Contacts and InCallUI and nothing else. It is region-gated and does not cover Messages, recording or the defaults.
 
 ## Credits
 
